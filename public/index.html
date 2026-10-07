@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Choose Everything! Auction</title>
+<style>
+:root{
+ --bg:#0e1016;--panel:#171a24;--card:#212533;--line:#303548;--text:#f7f8fb;--muted:#a8afc1;
+ --accent:#775cff;--accent2:#a66cff;--green:#30c878;--gold:#ffd369;--red:#ff647c;
+}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#1a1d2b 0,#0e1016 46%);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;min-height:100vh}
+button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:1180px;margin:auto;padding:22px}.hidden{display:none!important}
+.brand{font-size:clamp(30px,5vw,58px);font-weight:1000;letter-spacing:-2.5px;line-height:.95}.tag{color:var(--muted);margin-top:10px}
+.panel{background:rgba(23,26,36,.96);border:1px solid var(--line);border-radius:22px;padding:20px;margin-top:20px}
+.row{display:flex;gap:12px;flex-wrap:wrap}.grow{flex:1;min-width:180px}input,select{width:100%;background:#10131b;border:1px solid #363b4d;color:var(--text);border-radius:13px;padding:14px 15px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}.btn{border:0;border-radius:13px;background:var(--accent);color:#fff;font-weight:900;padding:13px 18px;min-height:46px}
+.btn.secondary{background:#303548}.btn.green{background:var(--green);color:#07120c}.btn.gold{background:var(--gold);color:#271d00}.btn:disabled{opacity:.45;cursor:not-allowed}
+.notice{background:#202432;border:1px solid #31364a;color:#dfe2ec;border-radius:13px;padding:12px 14px;margin-top:12px}.error{color:#ffb7c1}
+.top{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}.code{font-size:32px;font-weight:1000;letter-spacing:4px}.players{display:flex;gap:9px;flex-wrap:wrap}.pill{padding:9px 12px;border-radius:999px;background:#282d3c}
+.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{background:#242837;border-radius:14px;padding:10px 14px;min-width:120px}.stat b{font-size:20px}
+.auctionGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:18px;margin-top:16px}.itemCard{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.photo{aspect-ratio:16/10;background:#12151e;display:grid;place-items:center;overflow:hidden}.photo img{width:100%;height:100%;object-fit:cover;display:block}.itemInfo{padding:18px}.itemName{font-size:clamp(28px,5vw,50px);font-weight:1000;line-height:1}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.badge{background:#2d3242;border-radius:999px;padding:7px 10px;font-size:13px;font-weight:800}.badge.gold{background:#4a3a13;color:#ffd878}
+.bidBox{background:#191c27;border:1px solid var(--line);border-radius:22px;padding:18px}.timer{font-size:52px;font-weight:1000;line-height:1}.high{font-size:34px;font-weight:1000;color:var(--gold);margin:10px 0}.bidButtons{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.bidButtons button{width:100%}
+.history{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.collect{background:#212533;border:1px solid var(--line);border-radius:16px;padding:12px}.thumb{height:100px;border-radius:12px;overflow:hidden;background:#12151e}.thumb img{width:100%;height:100%;object-fit:cover}
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:16px}.team{background:#222634;border:1px solid var(--line);border-radius:18px;padding:14px}.team.winner{border-color:var(--gold);box-shadow:0 0 0 2px #ffd36926 inset}.miniGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.miniCard{background:#141720;border-radius:10px;overflow:hidden}.miniCard img{width:100%;height:70px;object-fit:cover}.miniCard div{font-size:11px;padding:6px}
+.sound{position:absolute;right:16px;top:16px}.rarity-Lendário{color:#ffd369}.rarity-Mítico{color:#d497ff}.rarity-Épico{color:#75a7ff}.rarity-Raro{color:#70e0ba}.rarity-Comum{color:#c6c9d3}
+@media(max-width:760px){.auctionGrid{grid-template-columns:1fr}.wrap{padding:14px}.panel{padding:14px}.sound{position:static;margin-top:10px}.miniGrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><div class="brand">CHOOSE EVERYTHING!</div><div class="tag">Leilão multiplayer • quem der mais, leva.</div></div>
+    <button id="soundBtn" class="btn secondary sound" type="button">🔊 Som: ON</button>
+  </div>
+
+  <section id="home" class="panel">
+    <h2>Jogar com amigos</h2>
+    <div class="row">
+      <div class="grow"><input id="name" maxlength="18" placeholder="Seu nome"></div>
+      <button id="create" class="btn" type="button">Criar sala</button>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="grow"><input id="codeInput" maxlength="5" placeholder="Código da sala"></div>
+      <button id="join" class="btn secondary" type="button">Entrar</button>
+    </div>
+    <div id="homeMsg" class="notice hidden"></div>
+  </section>
+
+  <section id="lobby" class="panel hidden">
+    <div class="top">
+      <div><div class="tag">CÓDIGO DA SALA</div><div id="roomCode" class="code">-----</div></div>
+      <button id="start" class="btn green" type="button">Começar leilão</button>
+    </div>
+    <div class="notice">Envie o código para seus amigos. O host escolhe categoria, quantidade de rodadas e moedas iniciais.</div>
+    <div class="row" style="margin-top:14px">
+      <div class="grow"><label>Categoria<select id="category"></select></label></div>
+      <div class="grow"><label>Rodadas<select id="rounds"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select></label></div>
+      <div class="grow"><label>Moedas iniciais<select id="cash"><option>50</option><option selected>100</option><option>150</option><option>200</option><option>300</option><option>500</option></select></label></div>
+    </div>
+    <h3>Jogadores</h3><div id="players" class="players"></div>
+  </section>
+
+  <section id="auction" class="panel hidden">
+    <div class="top">
+      <div><div class="tag" id="roundText">RODADA</div><h2 id="catText">Categoria</h2></div>
+      <div class="stats">
+        <div class="stat">💰 Você<br><b id="myCash">0</b></div>
+        <div class="stat">🏆 Itens<br><b id="myItems">0</b></div>
+      </div>
+    </div>
+    <div class="auctionGrid">
+      <div class="itemCard">
+        <div class="photo"><img id="mainImg" alt=""></div>
+        <div class="itemInfo">
+          <div id="itemName" class="itemName">Item</div>
+          <div class="badges">
+            <span id="rarity" class="badge">Raridade</span>
+            <span id="power" class="badge">Poder 0</span>
+            <span id="itemCat" class="badge">Categoria</span>
+          </div>
+        </div>
+      </div>
+      <div class="bidBox">
+        <div class="tag">TEMPO</div><div id="timer" class="timer">16.0</div>
+        <div class="tag" style="margin-top:14px">MAIOR LANCE</div><div id="highBid" class="high">0</div>
+        <div id="highName" class="muted">Ninguém ainda</div>
+        <div class="bidButtons" style="margin-top:18px">
+          <button class="btn secondary quick" data-inc="1">+1</button>
+          <button class="btn secondary quick" data-inc="5">+5</button>
+          <button class="btn secondary quick" data-inc="10">+10</button>
+          <button class="btn secondary quick" data-inc="25">+25</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="grow"><input id="customBid" inputmode="numeric" type="number" min="1" placeholder="Seu lance"></div>
+          <button id="bid" class="btn gold" type="button">DAR LANCE</button>
+        </div>
+        <div id="bidMsg" class="notice">💡 Lances nos últimos 3s podem adicionar +3s.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="between" class="panel hidden">
+    <h2>🔨 Vendido!</h2>
+    <div id="soldText" class="notice"></div>
+    <div id="collection" class="history" style="margin-top:16px"></div>
+  </section>
+
+  <section id="vote" class="panel hidden">
+    <div class="top"><div><h2>Vote na melhor coleção</h2><div class="tag">Você não pode votar em si mesmo.</div></div><div id="voteTimer" class="timer" style="font-size:34px">25</div></div>
+    <div id="teams" class="teams"></div>
+  </section>
+
+  <section id="results" class="panel hidden">
+    <h2>🏆 Resultado final</h2>
+    <div id="winner" class="notice"></div>
+    <div id="resultTeams" class="teams"></div>
+    <button id="back" class="btn" type="button" style="margin-top:16px">Voltar ao lobby</button>
+  </section>
+
+  <div id="toast" class="notice hidden" aria-live="polite"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket=io();
+const $=id=>document.getElementById(id);
+let room=null,catalog=[],soundOn=true,audioCtx=null,lastSecond=null;
+const sections=["home","lobby","auction","between","vote","results"];
+function show(id){sections.forEach(x=>$(x).classList.toggle("hidden",x!==id));}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function toast(t){$("toast").textContent=t;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2200);}
+function my(){return room?.players?.find(p=>p.id===socket.id);}
+function img(card){return card?`/api/image?q=${encodeURIComponent(card.wiki||card.name)}`:"";}
+
+function ensureAudio(){if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
+function tone(freq=440,dur=.08,type="sine",vol=.08,delay=0){
+  if(!soundOn)return; ensureAudio(); const t=audioCtx.currentTime+delay,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur);
+}
+function playSound(type){
+  if(type==="bid"){tone(580,.06,"square",.04);tone(760,.06,"square",.03,.05);}
+  if(type==="round"){tone(420,.08);tone(620,.08,"sine",.07,.09);}
+  if(type==="win"){tone(523,.12);tone(659,.12,"sine",.08,.12);tone(784,.18,"sine",.08,.24);}
+  if(type==="miss"){tone(220,.15,"sawtooth",.03);}
+  if(type==="vote"){tone(440,.08);tone(550,.08,"sine",.05,.08);}
+  if(type==="final"){[523,659,784,1047].forEach((f,i)=>tone(f,.18,"sine",.08,i*.12));}
+  if(type==="click"){tone(700,.05,"sine",.04);}
+}
+$("soundBtn").addEventListener("click",()=>{soundOn=!soundOn;$("soundBtn").textContent=soundOn?"🔊 Som: ON":"🔇 Som: OFF";if(soundOn)playSound("click");});
+
+socket.on("catalog",c=>{catalog=c;fillCategories();});
+socket.on("sound",playSound);
+socket.on("toast",toast);
+socket.on("room",r=>{room=r;render();});
+
+$("create").addEventListener("click",()=>{ensureAudio();const name=$("name").value.trim();if(!name)return homeMsg("Coloque seu nome.");socket.emit("createRoom",{name},r=>{if(!r.ok)homeMsg(r.error);});});
+$("join").addEventListener("click",()=>{ensureAudio();const name=$("name").value.trim(),code=$("codeInput").value.trim();if(!name||!code)return homeMsg("Coloque seu nome e o código.");socket.emit("joinRoom",{name,code},r=>{if(!r.ok)homeMsg(r.error);});});
+function homeMsg(t){$("homeMsg").textContent=t;$("homeMsg").classList.remove("hidden");}
+
+function fillCategories(){
+  $("category").innerHTML=`<option value="mixed">🎲 Tudo misturado</option>`+catalog.map(c=>`<option value="${esc(c.id)}">${esc(c.icon)} ${esc(c.name)} (${c.count})</option>`).join("");
+}
+["category","rounds","cash"].forEach(id=>$(id).addEventListener("change",()=>{if(room?.hostId===socket.id)socket.emit("settings",{categoryId:$("category").value,rounds:+$("rounds").value,startingCash:+$("cash").value});}));
+$("start").addEventListener("click",()=>{ensureAudio();socket.emit("settings",{categoryId:$("category").value,rounds:+$("rounds").value,startingCash:+$("cash").value});setTimeout(()=>socket.emit("startGame"),100);});
+$("bid").addEventListener("click",()=>sendBid(+$("customBid").value));
+document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>sendBid((room?.highBid||0)+(+b.dataset.inc))));
+function sendBid(v){ensureAudio();if(!Number.isFinite(v)||v<1)return;socket.emit("bid",{amount:Math.floor(v)});$("customBid").value="";}
+$("back").addEventListener("click",()=>socket.emit("backToLobby"));
+
+function render(){
+  if(!room)return;
+  $("roomCode").textContent=room.code;
+  $("players").innerHTML=room.players.map(p=>`<span class="pill">${esc(p.name)}${p.id===room.hostId?" 👑":""}</span>`).join("");
+  $("start").classList.toggle("hidden",room.hostId!==socket.id);
+  $("back").classList.toggle("hidden",room.hostId!==socket.id);
+  if(room.phase==="lobby"){
+    show("lobby"); $("category").value=room.settings.categoryId;$("rounds").value=String(room.settings.rounds);$("cash").value=String(room.settings.startingCash);
+  } else if(room.phase==="auction"){show("auction");renderAuction();}
+  else if(room.phase==="between"){show("between");renderBetween();}
+  else if(room.phase==="vote"){show("vote");renderTeams(false);}
+  else if(room.phase==="results"){show("results");renderTeams(true);}
+}
+function renderAuction(){
+  const p=my(),c=room.currentCard;if(!c)return;
+  $("roundText").textContent=`RODADA ${room.round} / ${room.settings.rounds}`;
+  $("catText").textContent=`${c.categoryIcon||""} ${c.categoryName||""}`;
+  $("myCash").textContent=p?.cash??0;$("myItems").textContent=p?.wonCount??0;
+  $("mainImg").src=img(c);$("mainImg").alt=c.name;$("itemName").textContent=c.name;
+  $("rarity").textContent=c.rarity;$("rarity").className=`badge rarity-${c.rarity}`;
+  $("power").textContent=`Poder ${c.power}/100`;$("itemCat").textContent=c.categoryName||"";
+  $("highBid").textContent=room.highBid;$("highName").textContent=room.highBidderId?(room.players.find(x=>x.id===room.highBidderId)?.name||"Jogador"):"Ninguém ainda";
+}
+function renderBetween(){
+  const w=room.lastWinner;
+  $("soldText").textContent=w?.id?`🏆 ${w.name} levou ${w.card.name} por ${w.bid} moedas!`:`😶 Ninguém deu lance em ${w?.card?.name||"este item"}.`;
+  const p=my();$("collection").innerHTML=(p?.inventory||[]).map(c=>`<div class="collect"><div class="thumb"><img src="${img(c)}" alt="${esc(c.name)}"></div><b>${esc(c.name)}</b><div class="tag">Pago: ${c.paid}</div></div>`).join("")||`<div class="notice">Você ainda não ganhou nenhum item.</div>`;
+}
+function miniCards(inv){return (inv||[]).map(c=>`<div class="miniCard"><img src="${img(c)}" alt="${esc(c.name)}"><div>${esc(c.name)}<br><b>${c.paid}</b> moedas</div></div>`).join("")||`<div class="notice">Sem itens</div>`;}
+function renderTeams(results){
+  const target=results?$("resultTeams"):$("teams");target.innerHTML="";
+  room.players.forEach(p=>{
+    const d=document.createElement("div");d.className="team"+(results&&p.id===room.winnerId?" winner":"");
+    const total=(p.inventory||[]).reduce((s,c)=>s+(c.power||0),0);
+    d.innerHTML=`<h3>${esc(p.name)} ${p.id===room.hostId?"👑":""}</h3><div class="tag">💰 ${p.cash} restantes • ⚡ Poder total ${total}${results?` • 🗳️ ${p.votes} voto(s)`:""}</div><div class="miniGrid" style="margin-top:10px">${miniCards(p.inventory)}</div>`;
+    if(!results&&p.id!==socket.id){const b=document.createElement("button");b.className="btn";b.style.marginTop="12px";b.textContent="Votar nesta coleção";b.addEventListener("click",()=>{socket.emit("vote",{targetId:p.id});b.disabled=true;b.textContent="Votado!";});d.appendChild(b);}
+    target.appendChild(d);
+  });
+  if(results){const w=room.players.find(p=>p.id===room.winnerId);$("winner").textContent=w?`🏆 ${w.name} venceu com ${w.votes} voto(s)!`:"Empate/sem vencedor.";}
+}
+setInterval(()=>{
+  if(!room)return;
+  if(room.phase==="auction"&&room.auctionEndsAt){
+    const ms=Math.max(0,room.auctionEndsAt-Date.now()),sec=Math.ceil(ms/1000);
+    $("timer").textContent=(ms/1000).toFixed(1);
+    if(sec!==lastSecond&&sec<=3&&sec>0){lastSecond=sec;tone(880,.05,"square",.04);}
+  } else if(room.phase==="vote"&&room.voteEndsAt){$("voteTimer").textContent=Math.ceil(Math.max(0,room.voteEndsAt-Date.now())/1000);}
+},100);
+</script>
+</body>
+</html>
